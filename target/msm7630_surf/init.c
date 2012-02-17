@@ -42,6 +42,7 @@
 #include <platform/iomap.h>
 #include <platform/machtype.h>
 #include <platform.h>
+#include <crypto_hash.h>
 
 #define MSM8255_ID                 74
 #define MSM8655_ID                 75
@@ -56,6 +57,15 @@ static unsigned mmc_sdc_base[] =
 
 static struct ptable flash_ptable;
 static int hw_platform_type = -1;
+
+/* Setting this variable to different values defines the
+ * behavior of CE engine:
+ * platform_ce_type = CRYPTO_ENGINE_TYPE_NONE : No CE engine
+ * platform_ce_type = CRYPTO_ENGINE_TYPE_SW : Software CE engine
+ * platform_ce_type = CRYPTO_ENGINE_TYPE_HW : Hardware CE engine
+ * Behavior is determined in the target code.
+ */
+static crypto_engine_type platform_ce_type = CRYPTO_ENGINE_TYPE_HW;
 
 /* for these partitions, start will be offset by either what we get from
  * smem, or from the above offset if smem is not useful. Also, we should
@@ -404,3 +414,8 @@ int emmc_recovery_init(void)
 	return rc;
 }
 #endif
+
+crypto_engine_type board_ce_type(void)
+{
+	return platform_ce_type;
+}

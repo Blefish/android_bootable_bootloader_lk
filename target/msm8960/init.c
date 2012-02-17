@@ -44,6 +44,7 @@
 #include <target.h>
 #include <platform.h>
 #include <baseband.h>
+#include <crypto_hash.h>
 
 /* 8960 */
 #define LINUX_MACHTYPE_8960_SIM     3230
@@ -78,6 +79,15 @@ static uint32_t platform_id;
 static uint32_t target_id;
 
 static pm8921_dev_t pmic;
+
+/* Setting this variable to different values defines the
+ * behavior of CE engine:
+ * platform_ce_type = CRYPTO_ENGINE_TYPE_NONE : No CE engine
+ * platform_ce_type = CRYPTO_ENGINE_TYPE_SW : Software CE engine
+ * platform_ce_type = CRYPTO_ENGINE_TYPE_HW : Hardware CE engine
+ * Behavior is determined in the target code.
+ */
+static crypto_engine_type platform_ce_type = CRYPTO_ENGINE_TYPE_SW;
 
 static void target_detect(void);
 static uint8_t get_uart_gsbi(void);
@@ -134,6 +144,11 @@ void target_init(void)
 	}
 #endif
 
+	if ((platform_id == MSM8960) || (platform_id == MSM8660A)
+        || (platform_id == MSM8260A) || (platform_id == APQ8060A))
+		/* Enable Hardware CE */
+		platform_ce_type = CRYPTO_ENGINE_TYPE_HW;
+
 	/* Trying Slot 1 first */
 	slot = 1;
 	base_addr = mmc_sdc_base[slot - 1];
@@ -151,6 +166,11 @@ void target_init(void)
 unsigned board_machtype(void)
 {
 	return target_id;
+}
+
+crypto_engine_type board_ce_type(void)
+{
+	return platform_ce_type;
 }
 
 void target_detect(void)
