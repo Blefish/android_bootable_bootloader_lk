@@ -34,8 +34,6 @@
 #include <dev/ssbi.h>
 #include <dev/gpio_keypad.h>
 
-#define LINUX_MACHTYPE_7x27A_QRD 3756
-
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
 
 /* don't turn this on without updating the ffa support */
@@ -47,8 +45,12 @@ static unsigned int halibut_col_gpios[] = { 36, 37, 38, 39, 40 };
 static unsigned int halibut_row_gpios_qrd[] = { 31, 32 };
 static unsigned int halibut_col_gpios_qrd[] = { 36, 37 };
 
+static unsigned int halibut_row_gpios_evb[] = { 31 };
+static unsigned int halibut_col_gpios_evb[] = { 36, 37 };
+
 #define KEYMAP_INDEX(row, col) ((row)*ARRAY_SIZE(halibut_col_gpios) + (col))
 #define KEYMAP_INDEX_QRD(row, col) ((row)*ARRAY_SIZE(halibut_col_gpios_qrd) + (col))
+#define KEYMAP_INDEX_EVB(row, col) ((row)*ARRAY_SIZE(halibut_col_gpios_evb) + (col))
 
 static const unsigned short halibut_keymap[ARRAY_SIZE(halibut_col_gpios) *
 					   ARRAY_SIZE(halibut_row_gpios)] = {
@@ -91,6 +93,14 @@ static const unsigned short halibut_keymap_qrd[ARRAY_SIZE(halibut_col_gpios_qrd)
 	[KEYMAP_INDEX_QRD(0, 1)] = KEY_VOLUMEDOWN,
 };
 
+static const unsigned short halibut_keymap_evb[ARRAY_SIZE(halibut_col_gpios_evb)
+					       *
+					       ARRAY_SIZE
+					       (halibut_row_gpios_evb)] = {
+	[KEYMAP_INDEX_EVB(0, 0)] = KEY_VOLUMEUP,
+	[KEYMAP_INDEX_EVB(0, 1)] = KEY_VOLUMEDOWN,
+};
+
 static struct gpio_keypad_info halibut_keypad_info_surf = {
 	.keymap = halibut_keymap,
 	.output_gpios = halibut_row_gpios,
@@ -113,13 +123,23 @@ static struct gpio_keypad_info halibut_keypad_info_qrd = {
 	.flags = GPIOKPF_DRIVE_INACTIVE,
 };
 
+static struct gpio_keypad_info halibut_keypad_info_evb = {
+	.keymap = halibut_keymap_evb,
+	.output_gpios = halibut_row_gpios_evb,
+	.input_gpios = halibut_col_gpios_evb,
+	.noutputs = ARRAY_SIZE(halibut_row_gpios_evb),
+	.ninputs = ARRAY_SIZE(halibut_col_gpios_evb),
+	.settle_time = 5 /* msec */ ,
+	.poll_time = 20 /* msec */ ,
+	.flags = GPIOKPF_DRIVE_INACTIVE,
+};
+
 void keypad_init(void)
 {
-	unsigned int mach_id;
-	mach_id = board_machtype();
-
-	if (mach_id == LINUX_MACHTYPE_7x27A_QRD)
+	if (machine_is_7x27a_qrd1() || machine_is_7x27a_qrd3())
 		gpio_keypad_init(&halibut_keypad_info_qrd);
+	else if (machine_is_7x27a_evb())
+		gpio_keypad_init(&halibut_keypad_info_evb);
 	else
 		gpio_keypad_init(&halibut_keypad_info_surf);
 }

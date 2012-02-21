@@ -47,6 +47,8 @@
 #define MSM7X27A_QRD1	3756
 #define MSM7X25A_SURF	3772
 #define MSM7X25A_FFA	3771
+#define MSM7X27A_EVB	3934
+#define MSM7X27A_QRD3	4005
 
 #define LINUX_MACHTYPE  MSM7X27A_SURF
 
@@ -61,6 +63,8 @@ unsigned int fota_cookie[1];
 static struct ptable flash_ptable;
 unsigned hw_platform = 0;
 unsigned target_msm_id = 0;
+
+int machine_is_7x27a_evb();
 
 /* for these partitions, start will be offset by either what we get from
  * smem, or from the above offset if smem is not useful. Also, we should
@@ -78,7 +82,7 @@ static struct ptentry board_part_list[] = {
 	 },
 	{
 	 .start = DIFF_START_ADDR,
-	 .length = 208 /* In MB */ ,
+	 .length = 253 /* In MB */ ,
 	 .name = "system",
 	 },
 	{
@@ -135,9 +139,15 @@ void target_init(void)
 
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
-	display_init();
-	dprintf(SPEW, "Diplay initialized\n");
-	display_image_on_screen();
+	/* EVB platform comes with a new display panel, Until
+	 * support for new panel is added disable splash screen
+	 * for EVB
+	 */
+	if (!machine_is_7x27a_evb()) {
+		display_init();
+		dprintf(SPEW, "Diplay initialized\n");
+		display_image_on_screen();
+	}
 #endif
 
 	if (target_is_emmc_boot()) {
@@ -255,7 +265,13 @@ void board_info(void)
 				hw_platform = MSM7X27A_FFA;
 			break;
 		case 0xB:
-			hw_platform = MSM7X27A_QRD1;
+			if(target_is_emmc_boot())
+				hw_platform = MSM7X27A_QRD1;
+			else
+				hw_platform = MSM7X27A_QRD3;
+			break;
+		case 0xC:
+			hw_platform = MSM7X27A_EVB;
 			break;
 		default:
 			if (target_msm_id == MSM7225A
@@ -398,3 +414,27 @@ int emmc_recovery_init(void)
 	return rc;
 }
 #endif
+
+int machine_is_7x27a_evb()
+{
+	if (board_machtype() == MSM7X27A_EVB)
+		return 1;
+	else
+		return 0;
+}
+
+int machine_is_7x27a_qrd3()
+{
+	if (board_machtype() == MSM7X27A_QRD3)
+		return 1;
+	else
+		return 0;
+}
+
+int machine_is_7x27a_qrd1()
+{
+	if (board_machtype() == MSM7X27A_QRD1)
+		return 1;
+	else
+		return 0;
+}
