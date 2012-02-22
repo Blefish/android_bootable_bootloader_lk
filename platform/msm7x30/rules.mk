@@ -23,8 +23,7 @@ OBJS += \
 	$(LOCAL_DIR)/gpio.o \
 	$(LOCAL_DIR)/panel.o \
 	$(LOCAL_DIR)/panel_sharp_wvga.o \
-	$(LOCAL_DIR)/acpuclock.o \
-	$(LOCAL_DIR)/remote_spinlock.o
+	$(LOCAL_DIR)/acpuclock.o
 
 ifeq ($(ENABLE_TRUSTZONE),1)
 	ifeq ($(ENABLE_ROMLITE_LOCAL_TEST), 1)
