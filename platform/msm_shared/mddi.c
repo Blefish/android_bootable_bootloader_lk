@@ -328,8 +328,12 @@ struct fbcon_config *mddi_init(void)
 
 	dprintf(INFO, "panel is %d x %d\n", fb_cfg.width, fb_cfg.height);
 
+#ifdef MDDI_FB_ADDR
+	fb_cfg.base = MDDI_FB_ADDR;
+#else
 	fb_cfg.base =
 	    memalign(4096, fb_cfg.width * fb_cfg.height * (fb_cfg.bpp / 8));
+#endif
 
 	mlist = memalign(32, sizeof(mddi_llentry) * (fb_cfg.height / 8));
 	dprintf(INFO, "FB @ %p  mlist @ %x\n", fb_cfg.base, (unsigned)mlist);
