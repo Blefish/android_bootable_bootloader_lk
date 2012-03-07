@@ -182,10 +182,10 @@ void fbcon_setup(struct fbcon_config *_config)
 		fg = RGB565_WHITE;
 		bg = RGB565_BLACK;
 		break;
-        case FB_FORMAT_RGB888:
-                fg = RGB888_WHITE;
-                bg = RGB888_BLACK;
-                break;
+	case FB_FORMAT_RGB888:
+		fg = RGB888_WHITE;
+		bg = RGB888_BLACK;
+		break;
 	default:
 		dprintf(CRITICAL, "unknown framebuffer pixel format\n");
 		ASSERT(0);
@@ -196,7 +196,7 @@ void fbcon_setup(struct fbcon_config *_config)
 
 	cur_pos.x = 0;
 	cur_pos.y = 0;
-	max_pos.x = config->width / (FONT_WIDTH+1);
+	max_pos.x = config->width / (FONT_WIDTH + 1);
 	max_pos.y = (config->height - 1) / FONT_HEIGHT;
 #if !DISPLAY_SPLASH_SCREEN
 	fbcon_clear();
