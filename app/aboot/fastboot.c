@@ -256,7 +256,7 @@ static void cmd_getvar(const char *arg, void *data, unsigned sz)
 			return;
 		}
 	}
-	fastboot_okay("");
+	fastboot_fail("var not found");
 }
 
 static void cmd_download(const char *arg, void *data, unsigned sz)
