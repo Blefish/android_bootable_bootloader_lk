@@ -1,0 +1,2 @@
+To build for U8800, type: "make -j4 u8800 EMMC_BOOT=1"
+The compiled bootloader will be at build-u8800/EMMCBOOT.MBN
