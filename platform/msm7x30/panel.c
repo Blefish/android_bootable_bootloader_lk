@@ -420,11 +420,13 @@ void panel_poweron(void)
 
 void panel_backlight(int on)
 {
+	#ifndef TARGET_U8800 /* No need to do this on U8800 */
 	unsigned char reg_data = 0xA0;
 	if (on)
 		pmic_write(0x132, reg_data);
 	else
 		pmic_write(0x132, 0);
+	#endif
 }
 
 static unsigned wega_reset_gpio =

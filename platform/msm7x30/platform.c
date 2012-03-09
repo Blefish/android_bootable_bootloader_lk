@@ -123,9 +123,11 @@ void display_init(void)
 
 #if DISPLAY_TYPE_MDDI
 	mddi_pmdh_clock_init();
+	#ifndef TARGET_U8800 /* U8800 has LCD powered on modem */
 	mddi_panel_poweron();
 	/* We need to config GPIO 38 for Sleep clock with Spl Fun 2 */
 	toshiba_pmic_gpio_init(GPIO38_GPIO_CNTRL);
+	#endif
 	fb_cfg = mddi_init();
 	fbcon_setup(fb_cfg);
 #endif

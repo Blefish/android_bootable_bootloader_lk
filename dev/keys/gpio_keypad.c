@@ -331,31 +331,52 @@ scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
                                                  SSBI_REG_KYPD_OLD_DATA_ADDR))
       dprintf (CRITICAL, "Error in initializing SSBI_REG_KYPD_CNTL register\n");
 
-    while (rows--) {
-         columns = qwerty_keypad->keypad_info->columns;
-         if (((qwerty_keypad->keypad_info)->rec_keys[rows]
-	      != (qwerty_keypad->keypad_info)->old_keys[rows])
-	      && ((qwerty_keypad->keypad_info)->rec_keys[rows] != 0x00)
-	     && ((qwerty_keypad->keypad_info)->old_keys[rows] != 0x00)) {
-	    while (columns--) {
-	        column_new_keys = ((qwerty_keypad->keypad_info)->rec_keys[rows]);
-	        column_old_keys = ((qwerty_keypad->keypad_info)->old_keys[rows]);
-	        if (((0x01 << columns) & (~column_new_keys))
-		    && !((0x01 << columns) & (~column_old_keys))) {
-	            shift = (rows * 8) + columns;
-	            if ((qwerty_keypad->keypad_info)->keymap[shift]) {
-		      if (shift != key_detected) {
-			    key_detected = shift;
-			    keys_post_event((qwerty_keypad->keypad_info)->keymap[shift], 1);
-		        }
-	            }
-		}
-	    }
+	/* U8800 keys have it's own definitions */
+	/* This is dirty, but it works for now */
+	#ifdef TARGET_U8800
+	if (qwerty_keypad->keypad_info->rec_keys[0] == 0xfe || qwerty_keypad->keypad_info->rec_keys[0] == 0xee)
+	{
+		dprintf(INFO, "VOLUME UP PRESSED(0x%x)\n", qwerty_keypad->keypad_info->rec_keys[0]);
+		dprintf(INFO, "BOOTING TO RECOVERY\n");
+		keys_post_event(qwerty_keypad->keypad_info->keymap[0], 1);
 	}
-    }
+	else if (qwerty_keypad->keypad_info->rec_keys[0] == 0xfd || qwerty_keypad->keypad_info->rec_keys[0] == 0xed)
+	{
+		dprintf(INFO, "VOLUME DOWN PRESSED(0x%x)\n", qwerty_keypad->keypad_info->rec_keys[0]);
+		dprintf(INFO, "BOOTING TO FASTBOOT\n");
+		keys_post_event(qwerty_keypad->keypad_info->keymap[1], 1);
+	}
+	else if (qwerty_keypad->keypad_info->rec_keys[0] == 0xff)
+		dprintf(INFO, "NO KEYS PRESSED(0x%x)\n", qwerty_keypad->keypad_info->rec_keys[0]);
+	else
+		dprintf(INFO, "UNKNOWN KEY COMBINATION(0x%x)\n", qwerty_keypad->keypad_info->rec_keys[0]);
+	#else
+    while (rows--) {
+		columns = qwerty_keypad->keypad_info->columns;
+		if (((qwerty_keypad->keypad_info)->rec_keys[rows]
+			!= (qwerty_keypad->keypad_info)->old_keys[rows])
+			&& ((qwerty_keypad->keypad_info)->rec_keys[rows] != 0x00)
+			&& ((qwerty_keypad->keypad_info)->old_keys[rows] != 0x00)) {
+			while (columns--) {
+				column_new_keys = ((qwerty_keypad->keypad_info)->rec_keys[rows]);
+				column_old_keys = ((qwerty_keypad->keypad_info)->old_keys[rows]);
+				if (((0x01 << columns) & (~column_new_keys))
+					&& !((0x01 << columns) & (~column_old_keys))) {
+					shift = (rows * 8) + columns;
+					if ((qwerty_keypad->keypad_info)->keymap[shift]) {
+						if (shift != key_detected) {
+							key_detected = shift;
+							keys_post_event((qwerty_keypad->keypad_info)->keymap[shift], 1);
+						}
+					}
+				}
+			}
+		}
+	}
+	#endif
 
-    event_signal(&qwerty_keypad->full_scan, false);
-    return INT_RESCHEDULE;
+	event_signal(&qwerty_keypad->full_scan, false);
+	return INT_RESCHEDULE;
 }
 
 static enum handler_return
