@@ -67,7 +67,7 @@ void target_init(void)
 	if (check_reboot_mode())
 	{
 		display_init();
-		dprintf(SPEW, "Display initialized\n");
+		dprintf(INFO, "Display initialized\n");
 		
 		/* Initialize keys after the display so user will see report */
 		keys_init();
@@ -85,7 +85,7 @@ void target_init(void)
 	if (coldBoot) 
 	{
 		display_init();
-		dprintf(SPEW, "Diplay initialized\n");
+		dprintf(INFO, "Diplay initialized\n");
 		
 		/* Initialize keys after the display so user will see report */
 		keys_init();
