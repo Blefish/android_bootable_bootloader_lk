@@ -61,6 +61,8 @@ void target_init(void)
 	unsigned char slot;
 	bool coldBoot = 1;
 
+	dprintf(INFO, "target_init()\n");
+
 	/* Upon reboot, start display earlier */
 	if (check_reboot_mode())
 	{
@@ -73,8 +75,6 @@ void target_init(void)
 		
 		coldBoot = 0;
 	}
-
-	dprintf(INFO, "target_init()\n");
 
 	dprintf(INFO, "Waiting for modem-up...\n");
 	/* Must wait for modem-up before we can intialize MMC. */
