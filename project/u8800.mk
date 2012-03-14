@@ -6,8 +6,8 @@ TARGET := u8800
 
 MODULES += app/aboot
 
-#SPEW debug level
-DEBUG := 2
+#INFO debug level
+DEBUG := INFO
 
 #DEFINES += WITH_DEBUG_DCC=1
 #DEFINES += WITH_DEBUG_UART=1
