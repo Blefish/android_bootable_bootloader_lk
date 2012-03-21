@@ -334,17 +334,25 @@ scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
 	/* U8800 keys have it's own definitions */
 	/* This is dirty, but it works for now */
 	#ifdef TARGET_U8800
+	extern bool sdmode;
 	if (qwerty_keypad->keypad_info->rec_keys[0] == 0xfe || qwerty_keypad->keypad_info->rec_keys[0] == 0xee)
 	{
 		dprintf(INFO, "VOLUME UP PRESSED(0x%x)\n", qwerty_keypad->keypad_info->rec_keys[0]);
-		dprintf(INFO, "BOOTING TO RECOVERY\n");
+		dprintf(INFO, "BOOTING TO RECOVERY MODE!\n");
 		keys_post_event(qwerty_keypad->keypad_info->keymap[0], 1);
 	}
 	else if (qwerty_keypad->keypad_info->rec_keys[0] == 0xfd || qwerty_keypad->keypad_info->rec_keys[0] == 0xed)
 	{
 		dprintf(INFO, "VOLUME DOWN PRESSED(0x%x)\n", qwerty_keypad->keypad_info->rec_keys[0]);
-		dprintf(INFO, "BOOTING TO FASTBOOT\n");
+		dprintf(INFO, "BOOTING TO FASTBOOT MODE!\n");
 		keys_post_event(qwerty_keypad->keypad_info->keymap[1], 1);
+	}
+	else if (qwerty_keypad->keypad_info->rec_keys[0] == 0xfc || qwerty_keypad->keypad_info->rec_keys[0] == 0xec)
+	{
+		dprintf(INFO, "VOLUME UP AND DOWN PRESSED(0x%x)\n", qwerty_keypad->keypad_info->rec_keys[0]);
+		dprintf(INFO, "STARTING IN SD CARD MODE!\n");
+		dprintf(INFO, "Flash commands work on SD card mode.\n");
+		sdmode = 1;
 	}
 	else if (qwerty_keypad->keypad_info->rec_keys[0] == 0xff)
 		dprintf(INFO, "NO KEYS PRESSED(0x%x)\n", qwerty_keypad->keypad_info->rec_keys[0]);

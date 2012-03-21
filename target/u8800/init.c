@@ -55,6 +55,23 @@ unsigned smem_read_alloc_entry_offset(smem_mem_type_t, void *, int, int);
 
 void keypad_init(void);
 
+bool sdmode = 0;
+
+void loadDisplay(void)
+{
+	display_init();
+	dprintf(INFO, "Display initialized\n");
+
+	dprintf(INFO, "PRESS KEYS NOW! (2 seconds)\n");
+	dprintf(INFO, "TO START IN SD MODE, PRESS VOLUME UP AND DOWN!\n");
+
+	mdelay(2000);
+
+	/* Initialize keys after the display so user will see report */
+	keys_init();
+	keypad_init();
+}
+
 void target_init(void)
 {
 	unsigned base_addr;
@@ -66,13 +83,7 @@ void target_init(void)
 	/* Upon reboot, start display earlier */
 	if (check_reboot_mode())
 	{
-		display_init();
-		dprintf(INFO, "Display initialized\n");
-		
-		/* Initialize keys after the display so user will see report */
-		keys_init();
-		keypad_init();
-		
+		loadDisplay();
 		coldBoot = 0;
 	}
 
@@ -83,31 +94,29 @@ void target_init(void)
 	
 	/* If cold boot, wait for modem to start display */
 	if (coldBoot) 
-	{
-		display_init();
-		dprintf(INFO, "Diplay initialized\n");
-		
-		/* Initialize keys after the display so user will see report */
-		keys_init();
-		keypad_init();
-	}
+		loadDisplay();
 
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
 	display_image_on_screen();
 #endif
 
-	/* Trying Slot 2 first */
+	/* If user has selected SD mode */
+	if (sdmode)
+	{
+		/* Trying Slot 4 */
+		slot = 4;
+		base_addr = mmc_sdc_base[slot - 1];
+		if (mmc_boot_main(slot, base_addr))
+			dprintf(CRITICAL, "Failed to start from SD card!\nStarting from EMMC...\n");
+	}
+	
+	/* Trying Slot 2 */
 	slot = 2;
 	base_addr = mmc_sdc_base[slot - 1];
 	if (mmc_boot_main(slot, base_addr)) {
-		/* Trying Slot 4 next */
-		slot = 4;
-		base_addr = mmc_sdc_base[slot - 1];
-		if (mmc_boot_main(slot, base_addr)) {
-			dprintf(CRITICAL, "mmc init failed!");
-			ASSERT(0);
-		}
+		dprintf(CRITICAL, "mmc init failed!");
+		ASSERT(0);
 	}
 	return;
 }
