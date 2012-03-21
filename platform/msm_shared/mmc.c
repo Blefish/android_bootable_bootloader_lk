@@ -1914,12 +1914,15 @@ mmc_boot_init_card(struct mmc_boot_host *host, struct mmc_boot_card *card)
 		} else if (mmc_return == MMC_BOOT_E_SUCCESS) {
 			break;
 		} else {
-			dprintf(CRITICAL,
-				"Error No. %d: Failure Initializing MMC Card!\n",
-				mmc_return);
-
 			/* Check for sD card */
 			mmc_return = mmc_boot_sd_init_card(card);
+			
+			/* In case it was not an sD card and we did fail */
+			if (mmc_return)
+				dprintf(CRITICAL,
+					"Error No. %d: Failure Initializing MMC Card!\n",
+					mmc_return);
+			
 			return mmc_return;
 		}
 	}
