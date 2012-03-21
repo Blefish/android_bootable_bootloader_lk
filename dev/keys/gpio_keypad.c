@@ -331,33 +331,25 @@ scan_qwerty_keypad(struct timer *timer, time_t now, void *arg)
                                                  SSBI_REG_KYPD_OLD_DATA_ADDR))
       dprintf (CRITICAL, "Error in initializing SSBI_REG_KYPD_CNTL register\n");
 
-	/* U8800 keys have it's own definitions */
-	/* This is dirty, but it works for now */
+	/* Use pmic8xxx-keypad on U8800 */
 	#ifdef TARGET_U8800
 	extern bool sdmode;
-	if (qwerty_keypad->keypad_info->rec_keys[0] == 0xfe || qwerty_keypad->keypad_info->rec_keys[0] == 0xee)
-	{
-		dprintf(INFO, "VOLUME UP PRESSED(0x%x)\n", qwerty_keypad->keypad_info->rec_keys[0]);
-		dprintf(INFO, "BOOTING TO RECOVERY MODE!\n");
-		keys_post_event(qwerty_keypad->keypad_info->keymap[0], 1);
+	int row, col, code;
+	bool keypressed[rows * columns];
+	for (row = 0; row < rows; row++) {
+		for (col = 0; col < columns; col++) {
+			keypressed[col] = !((qwerty_keypad->keypad_info)->rec_keys[row] & (1 << col));
+			dprintf(INFO, "key [%d:%d] %s\n", row, col,
+				keypressed[col] ? "pressed" : "not pressed");
+		}
 	}
-	else if (qwerty_keypad->keypad_info->rec_keys[0] == 0xfd || qwerty_keypad->keypad_info->rec_keys[0] == 0xed)
-	{
-		dprintf(INFO, "VOLUME DOWN PRESSED(0x%x)\n", qwerty_keypad->keypad_info->rec_keys[0]);
-		dprintf(INFO, "BOOTING TO FASTBOOT MODE!\n");
-		keys_post_event(qwerty_keypad->keypad_info->keymap[1], 1);
-	}
-	else if (qwerty_keypad->keypad_info->rec_keys[0] == 0xfc || qwerty_keypad->keypad_info->rec_keys[0] == 0xec)
-	{
-		dprintf(INFO, "VOLUME UP AND DOWN PRESSED(0x%x)\n", qwerty_keypad->keypad_info->rec_keys[0]);
-		dprintf(INFO, "STARTING IN SD CARD MODE!\n");
-		dprintf(INFO, "Flash commands work on SD card mode.\n");
+
+	if (keypressed[0] && keypressed[1])
 		sdmode = 1;
-	}
-	else if (qwerty_keypad->keypad_info->rec_keys[0] == 0xff)
-		dprintf(INFO, "NO KEYS PRESSED(0x%x)\n", qwerty_keypad->keypad_info->rec_keys[0]);
 	else
-		dprintf(INFO, "UNKNOWN KEY COMBINATION(0x%x)\n", qwerty_keypad->keypad_info->rec_keys[0]);
+		for (row = 0; row < rows; row++)
+			for (col = 0; col < columns; col++)
+					keys_post_event((qwerty_keypad->keypad_info)->keymap[col], keypressed[col]);
 	#else
     while (rows--) {
 		columns = qwerty_keypad->keypad_info->columns;

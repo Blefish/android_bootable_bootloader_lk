@@ -104,6 +104,7 @@ void target_init(void)
 	/* If user has selected SD mode */
 	if (sdmode)
 	{
+		dprintf(INFO, "Starting in SD mode!\n");
 		/* Trying Slot 4 */
 		slot = 4;
 		base_addr = mmc_sdc_base[slot - 1];
