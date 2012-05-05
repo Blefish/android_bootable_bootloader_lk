@@ -42,12 +42,22 @@
 #include <platform/iomap.h>
 #include <platform/machtype.h>
 #include <platform.h>
+#include <crypto_hash.h>
 
 #define LINUX_MACHTYPE_7x30_U8800	2040960
 #define HW_PLATFORM_U8800			1		/* Dummy? */
 
 static unsigned mmc_sdc_base[] =
     { MSM_SDC1_BASE, MSM_SDC2_BASE, MSM_SDC3_BASE, MSM_SDC4_BASE };
+
+/* Setting this variable to different values defines the
+ * behavior of CE engine:
+ * platform_ce_type = CRYPTO_ENGINE_TYPE_NONE : No CE engine
+ * platform_ce_type = CRYPTO_ENGINE_TYPE_SW : Software CE engine
+ * platform_ce_type = CRYPTO_ENGINE_TYPE_HW : Hardware CE engine
+ * Behavior is determined in the target code.
+ */
+static crypto_engine_type platform_ce_type = CRYPTO_ENGINE_TYPE_HW;
 
 void smem_ptable_init(void);
 unsigned smem_get_apps_flash_start(void);
@@ -177,3 +187,8 @@ int emmc_recovery_init(void)
 	return rc;
 }
 #endif
+
+crypto_engine_type board_ce_type(void)
+{
+	return platform_ce_type;
+}
