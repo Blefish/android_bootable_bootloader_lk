@@ -255,21 +255,13 @@ void board_info(void)
 		switch (id) {
 		case 0x1:
 			/* Set the machine type based on msm ID */
-			if (target_msm_id == MSM7225A
-			    || target_msm_id == MSM7625A
-			    || target_msm_id == ESM7225A
-			    || (target_msm_id >= MSM7225AA
-				&& target_msm_id <= ESM7225AA))
+			if (msm_is_7x25a(target_msm_id))
 				hw_platform = MSM7X25A_SURF;
 			else
 				hw_platform = MSM7X27A_SURF;
 			break;
 		case 0x2:
-			if (target_msm_id == MSM7225A
-			    || target_msm_id == MSM7625A
-			    || target_msm_id == ESM7225A
-			    || (target_msm_id >= MSM7225AA
-				&& target_msm_id <= ESM7225AA))
+			if (msm_is_7x25a(target_msm_id))
 				hw_platform = MSM7X25A_FFA;
 			else
 				hw_platform = MSM7X27A_FFA;
@@ -284,11 +276,7 @@ void board_info(void)
 			hw_platform = MSM7X27A_EVB;
 			break;
 		default:
-			if (target_msm_id == MSM7225A
-			    || target_msm_id == MSM7625A
-			    || target_msm_id == ESM7225A
-			    || (target_msm_id >= MSM7225AA
-				&& target_msm_id <= ESM7225AA))
+			if (msm_is_7x25a(target_msm_id))
 				hw_platform = MSM7X25A_SURF;
 			else
 				hw_platform = MSM7X27A_SURF;
@@ -302,6 +290,9 @@ void board_info(void)
 		case MSM7225AA:
 		case MSM7625AA:
 		case ESM7225AA:
+		case MSM7225AB:
+		case MSM7625AB:
+		case ESM7225AB:
 			target_msm_id = MSM7625A;
 			break;
 		default:
@@ -452,4 +443,24 @@ int machine_is_7x27a_qrd1()
 		return 1;
 	else
 		return 0;
+}
+int msm_is_7x25a(int msm_id)
+{
+	int ret = 0;
+	switch(msm_id) {
+		case MSM7225A:
+		case MSM7625A:
+		case ESM7225A:
+		case MSM7225AA:
+		case MSM7625AA:
+		case ESM7225AA:
+		case MSM7225AB:
+		case MSM7625AB:
+		case ESM7225AB:
+			ret = 1;
+			break;
+		default:
+			ret = 0;
+	};
+	return ret;
 }
