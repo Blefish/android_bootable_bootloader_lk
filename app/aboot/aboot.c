@@ -172,8 +172,10 @@ unsigned char *update_cmdline(const char * cmdline)
 		cmdline_len += strlen(emmc_cmdline);
 	}
 
+#ifndef TARGET_U8800
 	cmdline_len += strlen(usb_sn_cmdline);
 	cmdline_len += strlen(sn_buf);
+#endif
 
 	if (target_pause_for_battery_charge()) {
 		pause_at_bootup = 1;
@@ -230,6 +232,7 @@ unsigned char *update_cmdline(const char * cmdline)
 			while ((*dst++ = *src++));
 		}
 
+#ifndef TARGET_U8800
 		src = usb_sn_cmdline;
 		if (have_cmdline) --dst;
 		have_cmdline = 1;
@@ -238,6 +241,7 @@ unsigned char *update_cmdline(const char * cmdline)
 		if (have_cmdline) --dst;
 		have_cmdline = 1;
 		while ((*dst++ = *src++));
+#endif
 
 		if (pause_at_bootup) {
 			src = battchg_pause;
