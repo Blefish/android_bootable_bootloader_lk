@@ -1,4 +1,4 @@
-/* Copyright (c) 2011, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -26,16 +26,22 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#ifndef _TARGET_U8800_DISPLAY_H
+#define _TARGET_U8800_DISPLAY_H
 
-#ifndef _PLATFORM_MSM7X30_MACHTYPE_H_
-#define _PLATFORM_MSM7X30_MACHTYPE_H_
+#define TARGET_XRES 480
+#define TARGET_YRES 800
 
-#define LINUX_MACHTYPE_7x30_SURF          2679
-#define LINUX_MACHTYPE_7x30_FFA           2707
-#define LINUX_MACHTYPE_7x30_FLUID         2741
-#define LINUX_MACHTYPE_8x55_SURF          2768
-#define LINUX_MACHTYPE_8x55_FFA           2769
-#define LINUX_MACHTYPE_8x55_SVLTE_FFA     2863
-#define LINUX_MACHTYPE_8x55_SVLTE_SURF    2864
-#define LINUX_MACHTYPE_7x30_U8800         2040960
+#define LCDC_FB_WIDTH     480
+#define LCDC_FB_HEIGHT    800
+
+#define LCDC_HSYNC_PULSE_WIDTH_DCLK 8
+#define LCDC_HSYNC_BACK_PORCH_DCLK  184
+#define LCDC_HSYNC_FRONT_PORCH_DCLK 4
+#define LCDC_HSYNC_SKEW_DCLK        0
+
+#define LCDC_VSYNC_PULSE_WIDTH_LINES 1
+#define LCDC_VSYNC_BACK_PORCH_LINES  2
+#define LCDC_VSYNC_FRONT_PORCH_LINES 3
+
 #endif

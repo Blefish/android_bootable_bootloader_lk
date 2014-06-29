@@ -37,8 +37,6 @@
 #define SSD_HEADER_MAGIC_SIZE  8
 #define SSD_HEADER_XML_SIZE    2048
 
-typedef unsigned int uint32;
-
 typedef struct {
 	uint32 len;
 	uint32 buf_offset;

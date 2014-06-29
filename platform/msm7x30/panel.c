@@ -420,11 +420,13 @@ void panel_poweron(void)
 
 void panel_backlight(int on)
 {
+#ifndef TARGET_U8800
 	unsigned char reg_data = 0xA0;
 	if (on)
 		pmic_write(0x132, reg_data);
 	else
 		pmic_write(0x132, 0);
+#endif
 }
 
 static unsigned wega_reset_gpio =
@@ -432,6 +434,7 @@ GPIO_CFG(180, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA);
 
 static int display_common_power(int on)
 {
+#ifndef TARGET_U8800
 	int rc = 0, flag_on = !!on;
 	static int display_common_power_save_on;
 	unsigned int vreg_ldo12, vreg_ldo15, vreg_ldo20, vreg_ldo16, vreg_ldo8;
@@ -471,6 +474,9 @@ static int display_common_power(int on)
 	if (rc) {
 		return rc;
 	}
+#else
+	int rc = 0;
+#endif
 
 	return rc;
 }

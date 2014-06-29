@@ -48,6 +48,7 @@
 #include <partition_parser.h>
 #include <platform.h>
 #include <crypto_hash.h>
+#include "../../lib/fat_io/fat_filelib.h"
 
 #if DEVICE_TREE
 #include <libfdt.h>
@@ -814,6 +815,197 @@ continue_boot:
 	return 0;
 }
 
+static int media_read(unsigned long sector, unsigned char *buffer, unsigned long sector_count)
+{
+	unsigned long i;
+
+	for (i = 0; i < sector_count; i++) {
+		mmc_read((sector * BLOCK_SIZE) + i, (void *)buffer, BLOCK_SIZE);
+
+		sector ++;
+		buffer += BLOCK_SIZE;
+	}
+
+	return 1;
+}
+
+static int media_write(unsigned long sector, unsigned char *buffer, unsigned long sector_count)
+{
+	unsigned long i;
+
+	for (i = 0; i < sector_count; i++) {
+		mmc_write((sector * BLOCK_SIZE) + i, BLOCK_SIZE, (void *)buffer);
+		sector ++;
+		buffer += BLOCK_SIZE;
+	}
+
+	return 1;
+}
+
+int boot_linux_from_vfat(void)
+{
+	struct boot_img_hdr *hdr = (void*) buf;
+	unsigned offset = 0;
+	unsigned n = 0;
+	const char *cmdline;
+
+	unsigned char *image_addr = 0;
+	unsigned kernel_actual;
+	unsigned ramdisk_actual;
+	unsigned imagesize_actual;
+
+	FL_FILE *image;
+	const char *image_path;
+
+	if (!boot_into_recovery)
+		image_path = "/image/boot.img";
+	else
+		image_path = "/image/recovery.img";
+
+	fl_init();
+
+	// Attach media access functions to library
+	if (fl_attach_media(media_read, media_write) != FAT_INIT_OK) {
+		dprintf(CRITICAL, "ERROR: Media attach failed\n");
+		fl_shutdown();
+		return -1;
+	}
+
+	dprintf(INFO, "Printing contents of /image\n");
+	fl_listdirectory("/image");
+
+	image = fl_fopen(image_path, "r");
+	if (!image) {
+		dprintf(CRITICAL, "ERROR: Failed to open boot.img\n");
+		fl_shutdown();
+		return -1;
+	}
+
+	fl_fseek(image, offset, SEEK_SET);
+	if (fl_fread(buf, page_size, 1, image) < 0) {
+		dprintf(CRITICAL, "ERROR: Cannot read boot image header\n");
+		fl_fclose(image);
+		fl_shutdown();
+		return -1;
+	}
+
+	if (memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
+		dprintf(CRITICAL, "ERROR: Invalid boot image header\n");
+		fl_fclose(image);
+		fl_shutdown();
+                return -1;
+	}
+
+	if (hdr->page_size && (hdr->page_size != page_size)) {
+		page_size = hdr->page_size;
+		page_mask = page_size - 1;
+	}
+
+	/* Authenticate Kernel */
+	if(target_use_signed_kernel() && (!device.is_unlocked) && (!device.is_tampered))
+	{
+		image_addr = (unsigned char *)target_get_scratch_address();
+		kernel_actual = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
+		ramdisk_actual = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
+		imagesize_actual = (page_size + kernel_actual + ramdisk_actual);
+
+		offset = 0;
+
+		/* Assuming device rooted at this time */
+		device.is_tampered = 1;
+
+		/* Read image without signature */
+		fl_fseek(image, offset, SEEK_SET);
+		if (fl_fread((void *)image_addr, imagesize_actual, 1, image) < 0) {
+			dprintf(CRITICAL, "ERROR: Cannot read boot image\n");
+			fl_fclose(image);
+			fl_shutdown();
+			return -1;
+		}
+
+		offset = imagesize_actual;
+		/* Read signature */
+		fl_fseek(image, offset, SEEK_SET);
+		if (fl_fread((void *)(image_addr + offset), page_size, 1, image) < 0) {
+			dprintf(CRITICAL, "ERROR: Cannot read boot image signature\n");
+		} else {
+			auth_kernel_img = image_verify((unsigned char *)image_addr,
+					(unsigned char *)(image_addr + imagesize_actual),
+					imagesize_actual,
+					CRYPTO_AUTH_ALG_SHA256);
+
+			if(auth_kernel_img)
+			{
+				/* Authorized kernel */
+				device.is_tampered = 0;
+			}
+		}
+
+		/* Move kernel, ramdisk and device tree to correct address */
+		memmove((void*) hdr->kernel_addr, (char *)(image_addr + page_size), hdr->kernel_size);
+		memmove((void*) hdr->ramdisk_addr, (char *)(image_addr + page_size + kernel_actual), hdr->ramdisk_size);
+
+		/* Make sure everything from scratch address is read before next step!*/
+		if(device.is_tampered)
+		{
+			write_device_info_mmc(&device);
+#ifdef TZ_TAMPER_FUSE
+			set_tamper_fuse_cmd();
+#endif
+		}
+#if USE_PCOM_SECBOOT
+		set_tamper_flag(device.is_tampered);
+#endif
+	} else {
+		offset += page_size;
+
+		n = ROUND_TO_PAGE(hdr->kernel_size, page_mask);
+		fl_fseek(image, offset, SEEK_SET);
+		if (fl_fread((void *)hdr->kernel_addr, n, 1, image) < 0) {
+			dprintf(CRITICAL, "ERROR: Cannot read kernel image\n");
+			fl_fclose(image);
+			fl_shutdown();
+			return -1;
+		}
+		offset += n;
+
+		n = ROUND_TO_PAGE(hdr->ramdisk_size, page_mask);
+		if(n != 0)
+		{
+			fl_fseek(image, offset, SEEK_SET);
+			if (fl_fread((void *)hdr->ramdisk_addr, n, 1, image) < 0) {
+				dprintf(CRITICAL, "ERROR: Cannot read ramdisk image\n");
+				fl_fclose(image);
+				fl_shutdown();
+				return -1;
+			}
+		}
+		offset += n;
+	}
+
+	fl_fclose(image);
+	fl_shutdown();
+
+	dprintf(INFO, "\nkernel  @ %x (%d bytes)\n", hdr->kernel_addr,
+		hdr->kernel_size);
+	dprintf(INFO, "ramdisk @ %x (%d bytes)\n", hdr->ramdisk_addr,
+		hdr->ramdisk_size);
+
+	if(hdr->cmdline[0]) {
+		cmdline = (char*) hdr->cmdline;
+	} else {
+		cmdline = DEFAULT_CMDLINE;
+	}
+	dprintf(INFO, "cmdline = '%s'\n", cmdline);
+
+	dprintf(INFO, "\nBooting Linux\n");
+	boot_linux((void *)hdr->kernel_addr, (unsigned *) hdr->tags_addr,
+		   (const char *)cmdline, board_machtype(),
+		   (void *)hdr->ramdisk_addr, hdr->ramdisk_size);
+
+	return 0;
+}
+
 unsigned char info_buf[4096];
 void write_device_info_mmc(device_info *dev)
 {
@@ -1384,6 +1576,9 @@ void cmd_continue(const char *arg, void *data, unsigned sz)
 	udc_stop();
 	if (target_is_emmc_boot())
 	{
+#ifdef TARGET_U8800
+		boot_linux_from_vfat();
+#endif
 		boot_linux_from_mmc();
 	}
 	else
@@ -1525,6 +1720,9 @@ void aboot_init(const struct app_descriptor *app)
 			#endif
 			}
 		}
+#ifdef TARGET_U8800
+		boot_linux_from_vfat();
+#endif
 		boot_linux_from_mmc();
 	}
 	else
