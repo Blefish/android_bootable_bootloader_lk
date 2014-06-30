@@ -56,6 +56,9 @@ void target_init(void)
 
 	dprintf(INFO, "target_init()\n");
 
+	display_init();
+	dprintf(INFO, "Diplay initialized\n");
+
 #if TARGET_USES_RSPIN_LOCK
 	if(remote_spinlock_init(&rlock))
 		dprintf(SPEW,"Failed to Initialize remote spin locks\n");
@@ -65,9 +68,6 @@ void target_init(void)
 	keys_init();
 	keypad_init();
 #endif
-
-	display_init();
-	dprintf(SPEW, "Diplay initialized\n");
 
 	/* Display splash screen if enabled */
 #if DISPLAY_SPLASH_SCREEN
