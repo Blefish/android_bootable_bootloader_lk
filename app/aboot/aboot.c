@@ -1708,6 +1708,11 @@ void aboot_init(const struct app_descriptor *app)
 		goto fastboot;
 	}
 
+	if (boot_into_recovery)
+		dprintf(INFO, "Booting into recovery mode\n");
+	else
+		dprintf(INFO, "Booting into normal mode\n");
+
 	if (target_is_emmc_boot())
 	{
 		if(emmc_recovery_init())
@@ -1738,10 +1743,10 @@ void aboot_init(const struct app_descriptor *app)
 #endif
 		boot_linux_from_flash();
 	}
-	dprintf(CRITICAL, "ERROR: Could not do normal boot. Reverting "
-		"to fastboot mode.\n");
+	dprintf(CRITICAL, "ERROR: Could not do normal boot\n");
 
 fastboot:
+	dprintf(INFO, "Booting into fastboot mode\n");
 
 	target_fastboot_init();
 
