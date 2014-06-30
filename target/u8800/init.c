@@ -65,6 +65,8 @@ void target_init(void)
 #endif
 
 #if (!ENABLE_NANDWRITE)
+	dprintf(INFO, "Checking keys...\n");
+	mdelay(2000);
 	keys_init();
 	keypad_init();
 #endif
