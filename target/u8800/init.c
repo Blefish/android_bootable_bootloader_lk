@@ -74,6 +74,7 @@ void target_init(void)
 	display_image_on_screen();
 #endif
 
+	dprintf(INFO, "Waiting for modem-up...\n");
 	/* Must wait for modem-up before we can intialize MMC.
 	 */
 	while (readl(MSM_SHARED_BASE + 0x14) != 1) ;
