@@ -84,10 +84,12 @@ void target_init(void)
 	/* Trying Slot 2 first */
 	slot = 2;
 	base_addr = mmc_sdc_base[slot - 1];
+	dprintf(INFO, "Booting from SDC%d...\n", slot);
 	if (mmc_boot_main(slot, base_addr)) {
 		/* Trying Slot 4 next */
 		slot = 4;
 		base_addr = mmc_sdc_base[slot - 1];
+		dprintf(INFO, "Booting from SDC%d...\n", slot);
 		if (mmc_boot_main(slot, base_addr)) {
 			dprintf(CRITICAL, "mmc init failed!");
 			ASSERT(0);
