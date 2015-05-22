@@ -1,5 +1,5 @@
-ifeq ($(MAKECMDGOALS),spotless)
-spotless:
+ifeq ($(MAKECMDGOALS),clean)
+clean:
 	rm -rf build-*
 else
 
@@ -66,7 +66,7 @@ endif
 CPPFLAGS := -fno-exceptions -fno-rtti -fno-threadsafe-statics
 #CPPFLAGS += -Weffc++
 ASMFLAGS := -DASSEMBLY
-LDFLAGS := 
+LDFLAGS :=
 
 CFLAGS += -ffunction-sections -fdata-sections
 LDFLAGS += -gc-sections
@@ -76,17 +76,17 @@ all:: $(OUTBIN) $(OUTELF).lst $(OUTELF).debug.lst $(OUTELF).sym $(OUTELF).size A
 
 # the following three object lists are identical except for the ordering
 # which is bootobjs, kobjs, objs
-BOOTOBJS :=	
+BOOTOBJS :=
 OBJS :=
 
 # a linker script needs to be declared in one of the project/target/platform files
-LINKER_SCRIPT := 			
+LINKER_SCRIPT :=
 
 # anything you add here will be deleted in make clean
 GENERATED := $(CONFIGHEADER)
 
 # anything added to DEFINES will be put into $(BUILDDIR)/config.h
-DEFINES := LK=1				
+DEFINES := LK=1
 
 # Anything added to SRCDEPS will become a dependency of every source file in the system.
 # Useful for header files that may be included by one or more source files.
@@ -100,10 +100,10 @@ ALLMODULES :=
 MODULES :=
 
 # any rules you put here will also be built by the system before considered being complete
-EXTRA_BUILDDEPS := 
+EXTRA_BUILDDEPS :=
 
 # any rules you put here will be depended on in clean builds
-EXTRA_CLEANDEPS := 
+EXTRA_CLEANDEPS :=
 
 include project/$(PROJECT).mk
 include target/$(TARGET)/rules.mk
@@ -147,7 +147,7 @@ ALLOBJS := $(addprefix $(BUILDDIR)/,$(ALLOBJS))
 DEPS := $(ALLOBJS:%o=%d)
 
 # default to no ccache
-CCACHE ?= 
+CCACHE ?=
 CC := $(CCACHE) $(TOOLCHAIN_PREFIX)gcc
 LD := $(TOOLCHAIN_PREFIX)ld
 OBJDUMP := $(TOOLCHAIN_PREFIX)objdump
@@ -206,4 +206,4 @@ abootimg: all
 
 endif
 
-endif # make spotless
+endif # make clean
