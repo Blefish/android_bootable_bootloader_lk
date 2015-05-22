@@ -200,6 +200,10 @@ ifeq ($(filter $(MAKECMDGOALS), clean), )
 endif
 
 .PHONY: configheader
+
+abootimg: all
+	abootimg --create $(BUILDDIR)/boot.img -f abootimg/$(PROJECT).cfg -k $(BUILDDIR)/lk.bin -r abootimg/fakerd.img
+
 endif
 
 endif # make spotless
