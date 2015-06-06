@@ -209,13 +209,14 @@ void target_init(void)
 	display_image_on_screen();
 #endif
 
+#if 0
 	if (target_is_emmc_boot()) {
 		/* Must wait for modem-up before we can intialize MMC.
 		 */
 		while (readl(MSM_SHARED_BASE + 0x14) != 1) ;
 
 		/* Trying Slot 2 first */
-		slot = 2;
+		slot = 4;
 		base_addr = mmc_sdc_base[slot - 1];
 		if (mmc_boot_main(slot, base_addr)) {
 			/* Trying Slot 4 next */
@@ -228,6 +229,7 @@ void target_init(void)
 		}
 		return;
 	}
+
 
 	ptable_init(&flash_ptable);
 	smem_ptable_init();
@@ -284,24 +286,12 @@ void target_init(void)
 
 	ptable_dump(&flash_ptable);
 	flash_set_ptable(&flash_ptable);
-}
-
-int target_platform_version(void)
-{
-	return platform_version;
-}
-
-int target_is_msm8x55(void)
-{
-	if ((target_msm_id == MSM8255_ID) ||
-	    (target_msm_id == MSM8655_ID) || (target_msm_id == APQ8055_ID))
-		return 1;
-	else
-		return 0;
+#endif
 }
 
 unsigned board_machtype(void)
 {
+#if 0
 	struct smem_board_info_v4 board_info_v4;
 	unsigned int board_info_len = 0;
 	enum platform platform_type = 0;
@@ -365,7 +355,8 @@ unsigned board_machtype(void)
 			}
 		}
 	}
-	hw_platform_type = LINUX_MACHTYPE_7x30_SURF;
+#endif
+	hw_platform_type = LINUX_MACHTYPE_8x55_FFA;
 	return hw_platform_type;
 }
 
@@ -377,6 +368,7 @@ void reboot_device(unsigned reboot_reason)
 unsigned check_reboot_mode(void)
 {
 	unsigned mode[2] = { 0, 0 };
+#if 0
 	unsigned int mode_len = sizeof(mode);
 	unsigned smem_status;
 
@@ -387,12 +379,14 @@ unsigned check_reboot_mode(void)
 			"ERROR: unable to read shared memory for reboot mode\n");
 		return 0;
 	}
+#endif
 	return mode[0];
 }
 
 static unsigned target_check_power_on_reason(void)
 {
 	unsigned power_on_status = 0;
+#if 0
 	unsigned int status_len = sizeof(power_on_status);
 	unsigned smem_status;
 
@@ -403,7 +397,7 @@ static unsigned target_check_power_on_reason(void)
 		dprintf(CRITICAL,
 			"ERROR: unable to read shared memory for power on reason\n");
 	}
-
+#endif
 	return power_on_status;
 }
 

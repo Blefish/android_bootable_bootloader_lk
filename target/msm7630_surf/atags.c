@@ -37,66 +37,12 @@ static int scratch_addr = -1;
 
 unsigned *target_atag_mem(unsigned *ptr)
 {
-	struct smem_ram_ptable ram_ptable;
-	unsigned i = 0;
-
-	if (smem_ram_ptable_init(&ram_ptable)) {
-		for (i = 0; i < ram_ptable.len; i++) {
-			if ((ram_ptable.parts[i].attr == READWRITE)
-			    && (ram_ptable.parts[i].domain == APPS_DOMAIN)
-			    && (ram_ptable.parts[i].type == APPS_MEMORY)
-			    && (ram_ptable.parts[i].category != IMEM)) {
-				/* ATAG_MEM */
-				*ptr++ = 4;
-				*ptr++ = 0x54410002;
-				*ptr++ = ram_ptable.parts[i].size;
-				*ptr++ = ram_ptable.parts[i].start;
-			}
-
-			/* Check for modem bootloader memory that can be reclaimed */
-			if ((ram_ptable.parts[i].attr == READWRITE)
-			    && (ram_ptable.parts[i].domain == APPS_DOMAIN)
-			    && (ram_ptable.parts[i].type ==
-				BOOT_REGION_MEMORY1)) {
-				/* ATAG_MEM_OSBL */
-				*ptr++ = 4;
-				*ptr++ = 0x5441000C;
-				*ptr++ = ram_ptable.parts[i].size;
-				*ptr++ = ram_ptable.parts[i].start;
-			}
-		}
-	} else {
-		dprintf(CRITICAL, "ERROR: Unable to read RAM partition\n");
-		ASSERT(0);
-	}
-
-	return ptr;
+	return NULL;
 }
 
 void *target_get_scratch_address(void)
 {
-	struct smem_ram_ptable ram_ptable;
-	unsigned i = 0;
-
-	if (smem_ram_ptable_init(&ram_ptable)) {
-		for (i = 0; i < ram_ptable.len; i++) {
-			if ((ram_ptable.parts[i].attr == READWRITE)
-			    && (ram_ptable.parts[i].domain == APPS_DOMAIN)
-			    && (ram_ptable.parts[i].start != 0x0)) {
-				if (ram_ptable.parts[i].size >=
-				    FASTBOOT_BUF_SIZE) {
-					scratch_addr =
-					    ram_ptable.parts[i].start;
-					break;
-				}
-			}
-		}
-	} else {
-		dprintf(CRITICAL, "ERROR: Unable to read RAM partition\n");
-		ASSERT(0);
-	}
-
-	return (void *)((scratch_addr == -1) ? EBI1_ADDR_128M : scratch_addr);
+	return EBI1_ADDR_128M;
 }
 
 unsigned target_get_max_flash_size(void)
